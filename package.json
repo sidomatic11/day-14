@@ -1,0 +1,20 @@
+{
+  "name": "threejs-journey-exercise",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^5.2.10",
+    "vite-plugin-restart": "^0.4.0"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.14",
+    "gsap": "3.12",
+    "stats.js": "^0.17.0",
+    "three": "^0.164.1"
+  }
+}

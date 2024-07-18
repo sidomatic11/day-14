@@ -1,0 +1,8 @@
+{
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#068023",
+    "titleBar.activeBackground": "#189040",
+    "titleBar.activeForeground": "#FCFBE9"
+  },
+  "workbench.colorTheme": "Darcula"
+}

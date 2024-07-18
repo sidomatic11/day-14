@@ -77,11 +77,10 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 /* SECTION - Objects */
 const textureLoader = new THREE.TextureLoader();
 
-// Load the background texture
+/* ANCHOR: Background */
 const backgroundTexture = textureLoader.load("images/pixel-beach-darker.jpg");
 backgroundTexture.colorSpace = THREE.SRGBColorSpace;
 
-// Create a plane geometry for the background
 const backgroundGeometry = new THREE.PlaneGeometry(16, 9);
 const backgroundMaterial = new THREE.MeshBasicMaterial({
 	map: backgroundTexture,
@@ -89,19 +88,16 @@ const backgroundMaterial = new THREE.MeshBasicMaterial({
 	// transparent: true,
 });
 
-// Create the background mesh
 const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
-// backgroundMesh.scale.set(2, 2, 1);
 backgroundMesh.position.z = -1; // Position the background behind the scene
 backgroundMesh.position.y = 3.5;
 
-// Add the background to the scene
 scene.add(backgroundMesh);
 
+/* ANCHOR: People */
 let people = [];
 let peopleCount = 10;
 
-// Load the texture
 const runningPersonTexture = textureLoader.load("images/running.png");
 runningPersonTexture.colorSpace = THREE.SRGBColorSpace;
 const electrocutedPersonTexture = textureLoader.load("images/electrocuted.png");
@@ -124,6 +120,7 @@ for (let i = 0; i < peopleCount; i++) {
 	scene.add(person);
 }
 
+/* ANCHOR: Clouds */
 let clouds = [];
 let cloudConfig = [
 	{
@@ -166,27 +163,6 @@ for (let i = 0; i < cloudConfig.length; i++) {
 	scene.add(cloud);
 }
 
-// Create a sphere geometry and material
-const sphereGeometry = new THREE.SphereGeometry(0.05, 32, 32);
-const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-
-// Create the sphere mesh
-const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-
-// Position the sphere
-sphere.position.set(0, 0, 0);
-scene.add(sphere);
-sphere.visible = false;
-
-// Create a grid helper
-const gridHelper = new THREE.GridHelper(10, 10);
-
-// Position the grid on the xz plane
-// gridHelper.rotation.x = Math.PI / 2;
-
-// Add the grid to the scene
-// scene.add(gridHelper);
-
 /* ANCHOR Audio */
 let listener;
 let thunderSounds = [];
@@ -214,21 +190,19 @@ document.getElementById("startButton").addEventListener("click", (event) => {
 	}
 });
 
-// Add an event listener for mouse clicks
+/*!SECTION */
+
 window.addEventListener("click", (event) => {
-	// Calculate the mouse position in normalized device coordinates
+	/* Calculate the mouse position in normalized device coordinates */
 	const mouse = new THREE.Vector2();
 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-	// Create a raycaster and set it from the camera and mouse position
+	/* Create a raycaster and set it from the camera and mouse position */
 	const raycaster = new THREE.Raycaster();
 	raycaster.setFromCamera(mouse, camera);
 
-	// Calculate the intersection point with the XY plane
-	// const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-	// const intersectionPoint = new THREE.Vector3();
-	// raycaster.ray.intersectPlane(plane, intersectionPoint);
+	/* Check if the ray intersects any cloud */
 	const cloudIntersections = raycaster.intersectObjects(clouds);
 	let thunderStartPoint = new THREE.Vector3(0, 0, 0);
 	if (cloudIntersections.length > 0) {
@@ -236,7 +210,6 @@ window.addEventListener("click", (event) => {
 		const intersectedCloud = cloudIntersections[0].object;
 		if (intersectedCloud.userData.ready) {
 			const cloudWidth = intersectedCloud.geometry.parameters.width;
-			const cloudHeight = intersectedCloud.geometry.parameters.height;
 			const randomX =
 				intersectedCloud.position.x + (Math.random() - 0.5) * cloudWidth;
 			thunderStartPoint.set(randomX, intersectedCloud.position.y, 0);
@@ -269,11 +242,7 @@ window.addEventListener("click", (event) => {
 
 	const raycaster2 = new THREE.Raycaster();
 
-	// const point2 = new THREE.Vector3(intersectionPoint.x, 0, 0);
-
 	const points = [];
-	const segmentLength = 0.5;
-	// let currentPoint = intersectionPoint.clone();
 	let currentPoint = thunderStartPoint.clone();
 
 	points.push(currentPoint.clone());
@@ -281,8 +250,8 @@ window.addEventListener("click", (event) => {
 
 	while (currentPoint.y > 0 && thunderStrike.length == 0) {
 		currentPoint = currentPoint.clone();
-		// currentPoint.y -= segmentLength;
-		// currentPoint.x += direction * segmentLength;
+
+		/* Move the current point in a random direction */
 		currentPoint.x = currentPoint.x + Math.random() * 0.5 - 0.25;
 		currentPoint.y = currentPoint.y - Math.random() * 0.25;
 
@@ -296,46 +265,23 @@ window.addEventListener("click", (event) => {
 		console.log(thunderStrike);
 	}
 
-	// Create the geometry and material for the line
 	const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
 	const lineMaterial = new THREE.LineBasicMaterial({
 		color: 0xffffff,
 		transparent: true,
 	});
 
-	// Create the line and add it to the scene
 	const thunderLine = new THREE.Line(lineGeometry, lineMaterial);
 	scene.add(thunderLine);
 
-	// const lastPoint = points[points.length - 1];
-	// const secondLastPoint = points[points.length - 2];
-
-	// raycaster2.set(secondLastPoint, lastPoint);
-
-	/* Check if the line intersects the plane */
-	// const personBoundingBox = new THREE.Box3().setFromObject(person);
-	// const thunderLineBoundingBox = new THREE.Box3().setFromObject(thunderLine);
-	// const intersects = raycaster2.intersectObject(person);
-
 	if (thunderStrike.length > 0) {
 		console.log("The thunderLine intersects the person.");
-		sphere.position.set(
-			thunderStrike[0].point.x,
-			thunderStrike[0].point.y,
-			thunderStrike[0].point.z
-		);
 		thunderStrike.forEach((strike) => {
 			let person = strike.object;
 			person.material.map = electrocutedPersonTexture;
 			person.material.needsUpdate = true;
 			gsap.killTweensOf(person.position);
 		});
-		// const textureLoader = new THREE.TextureLoader();
-		// const newTexture = textureLoader.load("images/electrocuted.png");
-		// person.material.map = newTexture;
-		// person.material.needsUpdate = true;
-
-		// gsap.killTweensOf(person.position);
 	} else {
 		console.log("The thunderLine does not intersect the person.");
 	}
@@ -374,8 +320,6 @@ function animatePerson(person, targetX) {
 people.forEach((person) => {
 	animatePerson(person, 5);
 });
-
-/*!SECTION */
 
 /* SECTION - Render */
 const clock = new THREE.Clock();
